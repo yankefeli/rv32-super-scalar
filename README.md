@@ -24,6 +24,7 @@ module riscv_singlecycle
     output logic  [XLEN-1:0] reg_data_o,  // retired register data
     output logic  [XLEN-1:0] mem_addr_o,  // retired memory address
     output logic  [XLEN-1:0] mem_data_o,  // retired memory data
+    output logic             mem_wrt_o   // retired memory write enable signal
 );
   // module body
   // use other modules according to the need.
