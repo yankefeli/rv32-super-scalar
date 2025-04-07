@@ -34,6 +34,8 @@ endmodule
 
 The data and instruction memories of the processor should be initialized by DMemInitFile and  IMemInitFile respectively (i.e., use $readmemh in the initial block of the memories).
 
+All the addresses should be based on `0x8000_0000` you can use offset to get for example `0x8000` space after `0x8000_0000`. In other words, you address space for both IMEM and DMEM is from `0x8000_0000` to `0x8000_FFFF` (if you require more space for your implementation you can increase the ending address).
+
 To trace the processor state, RF write and DMEM write operations should be logged to LogFile. Therefore, following two functions should be used in RF and DMEM modules to track the written values. You can change the signal names (e.g., rf_idx_dec) with respect to your signal names.
 
 ```
