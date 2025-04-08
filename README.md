@@ -1,13 +1,15 @@
 # MTH410E – RISC-V Architecture and Processor Design
 
-## Single Cycle RISC-V Processor
+## Multi Cycle Pipelined RISC-V Processor
 
-Write a SystemVerilog code of a single cycle RISC-V processor. The designed micro-architecture should include all the instructions in RV32I (It is in the [riscv-spec](https://github.com/riscv/riscv-isa-manual/releases/download/riscv-isa-release-bb8b912-2025-03-21/riscv-unprivileged.pdf)). The processor should work as in-order and single-issue. There is no need for FENCE, FENCE.TSO, PAUSE, ECALL, EBREAK instruction implementation. Additional to the RV32I, [CTZ](https://riscv-software-src.github.io/riscv-unified-db/manual/html/isa/isa_20240411/insts/ctz.html), [CLZ](https://riscv-software-src.github.io/riscv-unified-db/manual/html/isa/isa_20240411/insts/clz.html), and [CPOP](https://riscv-software-src.github.io/riscv-unified-db/manual/html/isa/isa_20240411/insts/cpop.html) must be implemented too.
+Write a SystemVerilog code of a multi cycle pipelined RISC-V processor. The designed micro-architecture should include all the instructions in RV32I (It is in the [riscv-spec](https://github.com/riscv/riscv-isa-manual/releases/download/riscv-isa-release-bb8b912-2025-03-21/riscv-unprivileged.pdf)). The processor should work as in-order and single-issue. There is no need for FENCE, FENCE.TSO, PAUSE, ECALL, EBREAK instruction implementation. Additional to the RV32I, [CTZ](https://riscv-software-src.github.io/riscv-unified-db/manual/html/isa/isa_20240411/insts/ctz.html), [CLZ](https://riscv-software-src.github.io/riscv-unified-db/manual/html/isa/isa_20240411/insts/clz.html), and [CPOP](https://riscv-software-src.github.io/riscv-unified-db/manual/html/isa/isa_20240411/insts/cpop.html) must be implemented too.
+
+**Note: This homework is same with the previous one. The only difference is being multi-cycle and pipelined architecture.**
 
 The top file of the processor should be as follows;
 
 ```
-module riscv_singlecycle
+module riscv_multicycle
   import riscv_pkg::*;
 (
     parameter DMemInitFile  = “dmem.mem”;       // data memory initialization file
@@ -24,7 +26,7 @@ module riscv_singlecycle
     output logic  [XLEN-1:0] reg_data_o,  // retired register data
     output logic  [XLEN-1:0] mem_addr_o,  // retired memory address
     output logic  [XLEN-1:0] mem_data_o,  // retired memory data
-    output logic             mem_wrt_o   // retired memory write enable signal
+    output logic             mem_wrt_o    // retired memory write enable signal
 );
   // module body
   // use other modules according to the need.
@@ -53,3 +55,18 @@ Tasks:
 2. Clean all lint problems.
 3. Run the example in the test folder.
 4. Find other test and check (there will be other test cases to check).
+5. Create a PC table for each cycle. state flush and stall states. Example is below. Assume `0x80000010` is a mispredicted branch jumping to `0x80001000`.
+
+|    | F| D| E|M |WB|
+|--  |--|--|--|--|--|
+| 1  |0x80000000| - | - | - | - |
+| 2  |0x80000004|0x80000000| - | - | - |
+| 3  |0x80000008|0x80000004| 0x80000000 | - | - |
+| 4  |0x8000000c|0x80000008|0x80000004| 0x80000000 | - |
+| 5  |0x80000010|0x8000000c|0x80000008|0x80000004|0x80000000|
+| 6  |0x80000014|0x80000010|0x8000000c|0x80000008|0x80000004|
+| 7  |Flushed|Flushed|0x80000010|0x8000000c|0x80000008|
+| 8  |0x80001004|0x80001000|Flushed|Flushed|0x80000010|
+| 9  |0x80001008|0x80001004|0x80001000|Flushed|Flushed|
+| 10 |0x8000100c|0x80001008|0x80001004|0x80001000|Flushed|
+
