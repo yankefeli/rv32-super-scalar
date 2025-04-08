@@ -2,7 +2,7 @@
 
 ## Single Cycle RISC-V Processor
 
-Write a SystemVerilog code of a single cycle RISC-V processor. The designed micro-architecture should include all the instructions in RV32I (It is in the [riscv-spec](https://github.com/riscv/riscv-isa-manual/releases/download/riscv-isa-release-bb8b912-2025-03-21/riscv-privileged.pdf)). The processor should work as in-order and single-issue. There is no need for FENCE, FENCE.TSO, PAUSE, ECALL, EBREAK instruction implementation. Additional to the RV32I, [CTZ](https://riscv-software-src.github.io/riscv-unified-db/manual/html/isa/isa_20240411/insts/ctz.html), [CLZ](https://riscv-software-src.github.io/riscv-unified-db/manual/html/isa/isa_20240411/insts/clz.html), and [CPOP](https://riscv-software-src.github.io/riscv-unified-db/manual/html/isa/isa_20240411/insts/cpop.html) must be implemented too.
+Write a SystemVerilog code of a single cycle RISC-V processor. The designed micro-architecture should include all the instructions in RV32I (It is in the [riscv-spec](https://github.com/riscv/riscv-isa-manual/releases/download/riscv-isa-release-bb8b912-2025-03-21/riscv-unprivileged.pdf)). The processor should work as in-order and single-issue. There is no need for FENCE, FENCE.TSO, PAUSE, ECALL, EBREAK instruction implementation. Additional to the RV32I, [CTZ](https://riscv-software-src.github.io/riscv-unified-db/manual/html/isa/isa_20240411/insts/ctz.html), [CLZ](https://riscv-software-src.github.io/riscv-unified-db/manual/html/isa/isa_20240411/insts/clz.html), and [CPOP](https://riscv-software-src.github.io/riscv-unified-db/manual/html/isa/isa_20240411/insts/cpop.html) must be implemented too.
 
 The top file of the processor should be as follows;
 
