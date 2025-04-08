@@ -62,7 +62,7 @@ module tb ();
     #4;
     rstn = 1;
     #10000;
-    for (int i = 0; i < 10; i++) begin
+    for (logic [31:0] i = 32'h8000_0000; i < 32'h8000_0000 + 'h20; i = i + 4) begin
       addr = i;
       $display("data @ mem[0x%8h] = %8h", addr, data);
     end
