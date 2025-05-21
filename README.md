@@ -16,12 +16,11 @@ Datapath B (1 cycle): MEM + ALU operations (RV32I)
 The top file of the processor should be as follows;
 
 ```
-module riscv_multicycle
+module core_model
   import riscv_pkg::*;
 (
     parameter DMemInitFile  = “dmem.mem”,     // data memory initialization file
     parameter IMemInitFile  = “imem.mem”,     // instruction memory initialization file
-    parameter CommitLogFile = “commit.log”,   // processor state and used for verification/grading
     parameter TableFile     = "table.log",    // processor state and used for verification/grading
     parameter IssueWidth    = 2               // 
 )   (
@@ -179,3 +178,42 @@ _0x80000038:    xor x1,x2,x4
 _0x8000003c:    xor x1,x2,x5
 _0x80000040:    xor x1,x2,x6
 ```
+
+---
+# 📘 Homework Submission and Objection Rulebook
+## 🎯 Purpose
+
+To ensure fairness, standardization, and traceability in homework grading, the following rules must be followed. Assignments that do not comply with this rulebook will not be graded.
+## 📤 Rulebook for Submission
+1. Vivado files are NOT accepted.
+2. All homework must be submitted via the assigned GitHub repository. No other platforms or file systems will be checked.
+3. Grading is performed step-by-step using the provided Makefile. Your code must produce visible output and pass relevant steps.
+4. Each step in the Makefile corresponds to specific grading components.
+5. If your code does not complete a step in the Makefile, it will receive no marks for that step.
+6. Dmem.mem must be empty at submission.
+7. Dmem.mem and Imem.mem files must be located in the ./ directory, alongside the Makefile.
+8. Do not modify the Makefile under any circumstances.
+9. Submissions that follow the required system allow instructors to focus more on feedback. Remember: as an engineer, your system must work in different environments.
+---
+## ❗ Rulebook for Objections
+
+1. Improper or spam-like emails (e.g. "Hocam çalışıyor", "Hocam bir daha bakın") will result in a 5-point penalty per email.
+2. If you make false claims about instructions or grading criteria, and it's proven that you lied, your objection will be invalid and your grade will not be changed.
+3. Objections must include a screen recording where:
+    - The zip file from Ninova is extracted.
+    - Commands are run from the root of the provided GitHub repo, using the original Makefile.
+    - Linter and build steps are shown running successfully.
+    - The video must be uploaded to YouTube and the link sent via email.
+    - The length of the video cannot be longer than 2 minutes.
+4. Any manipulation or deviation from the GitHub system will be considered copying.
+5. Only objections that are proven with a video will be evaluated.
+
+---
+## 🧠 Some Reminders
+
+- Please use the parameters from the top-level module declaration to initialize memories and write to log files.
+- Please check the results in the log files produced by the provided tests. If your design works correctly, they should match the expected output.
+- Please ensure that your design compiles and runs using the agreed-upon tools.
+- Please verify that your design works with the provided testbench without any modifications.
+- Your design must use all input signals, drive all specified output signals, and generate all required log files correctly.
+- Be mindful of the address range defined in the assignment. Any violation may lead to malfunction or point deduction.

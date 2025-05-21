@@ -1,18 +1,24 @@
 module tb ();
+  parameter int IssueWidth = 2;
   logic [riscv_pkg::XLEN-1:0] addr;
   logic [riscv_pkg::XLEN-1:0] data;
-  logic [riscv_pkg::XLEN-1:0] pc;
-  logic [riscv_pkg::XLEN-1:0] instr;
-  logic [                4:0] reg_addr;
-  logic [riscv_pkg::XLEN-1:0] reg_data;
-  logic [riscv_pkg::XLEN-1:0] mem_addr;
-  logic [riscv_pkg::XLEN-1:0] mem_data;
-  logic                       mem_wrt;
-  logic                       update;
+  logic [IssueWidth-1:0] [riscv_pkg::XLEN-1:0] pc;
+  logic [IssueWidth-1:0] [riscv_pkg::XLEN-1:0] instr;
+  logic [IssueWidth-1:0] [                4:0] reg_addr;
+  logic [IssueWidth-1:0] [riscv_pkg::XLEN-1:0] reg_data;
+  logic [IssueWidth-1:0] [riscv_pkg::XLEN-1:0] mem_addr;
+  logic [IssueWidth-1:0] [riscv_pkg::XLEN-1:0] mem_data;
+  logic [IssueWidth-1:0]                       mem_wrt;
+  logic [IssueWidth-1:0]                       update;
   logic                       clk;
   logic                       rstn;
 
-  core_model i_core_model (
+  core_model  #(
+    .DMemInitFile("./test/dmem.hex"),
+    .IMemInitFile("./test/test.hex"),
+    .TableFile   ("table.log"),
+    .IssueWidth  (2)
+  ) i_core_model (
       .clk_i(clk),
       .rstn_i(rstn),
       .addr_i(addr),
@@ -30,24 +36,27 @@ module tb ();
   integer file_pointer;
   initial begin
     file_pointer = $fopen("model.log", "w");
-    #4
+    if (file_pointer == 0) $display("File model.log was not opened");
+    #1;
     forever begin
-      if (update) begin
-        if (reg_addr == 0) begin
-          $fwrite(file_pointer, "0x%8h (0x%8h)", pc, instr);
-        end else begin
-          if (reg_addr > 9) begin
-            $fwrite(file_pointer, "0x%8h (0x%8h) x%0d 0x%8h", pc, instr, reg_addr, reg_data);
+      for (int i=0; i < IssueWidth; ++i) begin
+        if (rstn && update[i]) begin
+          if (reg_addr[i] == 0) begin
+            $fwrite(file_pointer, "0x%8h (0x%8h)", pc[i], instr[i]);
           end else begin
-            $fwrite(file_pointer, "0x%8h (0x%8h) x%0d  0x%8h", pc, instr, reg_addr, reg_data);
+            if (reg_addr[i] > 9) begin
+              $fwrite(file_pointer, "0x%8h (0x%8h) x%0d 0x%8h", pc[i], instr[i], reg_addr[i], reg_data[i]);
+            end else begin
+              $fwrite(file_pointer, "0x%8h (0x%8h) x%0d  0x%8h", pc[i], instr[i], reg_addr[i], reg_data[i]);
+            end
           end
+          if (mem_wrt[i] == 1) begin
+            $fwrite(file_pointer, "mem 0x%8h 0x%8h", mem_addr[i], mem_data[i]);
+          end
+          $fwrite(file_pointer, "\n");
         end
-        if (mem_wrt == 1) begin
-          $fwrite(file_pointer, "mem 0x%8h 0x%8h", mem_addr, mem_data);
-        end
-        $fwrite(file_pointer, "\n");
-        #2;
       end
+      @(negedge clk);
     end
   end
   initial
@@ -58,6 +67,7 @@ module tb ();
       #1;
     end
   initial begin
+    $display("starting\n");
     rstn = 0;
     #4;
     rstn = 1;
