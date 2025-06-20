@@ -39,17 +39,41 @@ module Register_File
 
   // Synchronous write: Write on negedge clk or reset
   always_ff @(negedge clk or negedge reset) begin
-    if (!reset) begin
-      for (i = 0; i <= 31; i = i + 1)
-        file[i] <= 32'd0;
-    end
-    else begin
-      if (WE3 && (A3 != 5'd0) && !(WE3 && (A3 == A3_2)))
-        file[A3] <= WD3;
-      if (WE3_2 && (A3_2 != 5'd0))  //!(WE3 && (A3 == A3_2))
-        file[A3_2] <= WD3_2;
-      // Çakışma durumunda A3 yazması öncelikli olur
-    end
+  
+      if (!reset) begin
+        for (i = 0; i <= 31; i = i + 1)
+          file[i] <= 32'd0;
+      end
+      
+      else if (!order_change_w) begin
+      
+          if(WE3 && WE3_2 && (A3 == A3_2))
+          file[A3_2] <= WD3_2 ;
+       
+          else begin
+              if (WE3 && (A3 != 5'd0))
+              file[A3] <= WD3;
+              
+              if (WE3_2 && (A3_2 != 5'd0))  //!(WE3 && (A3 == A3_2))
+              file[A3_2] <= WD3_2;
+              // Çakışma durumunda A3 yazması öncelikli olu
+          end 
+      end
+      
+      else begin
+      
+          if(WE3 && WE3_2 && (A3 == A3_2))
+          file[A3] <= WD3;
+       
+          else begin
+              if (WE3 && (A3 != 5'd0))
+              file[A3] <= WD3;
+              
+              if (WE3_2 && (A3_2 != 5'd0))  //!(WE3 && (A3 == A3_2))
+              file[A3_2] <= WD3_2;
+              // Çakışma durumunda A3 yazması öncelikli olu
+          end 
+      end
   end
 
   // Combinational read: destekli forwarding

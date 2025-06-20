@@ -52,6 +52,8 @@ module Two_Way_Datapath
     
     input  logic         StallF_P, StallD_P,   FlushE_P,     FlushD_P, StallD_P_2,  FlushD_P_2,
     
+    input  logic         StallD_2, FlushD_2,
+    
     input  logic         pcsrce_2, //branch/jump flag from second datapath
     
     output logic [31:0]  Instr, //control unit input
@@ -90,11 +92,11 @@ module Two_Way_Datapath
     output logic  [31:0] RD2_2,       //Outputs for second datapath
     output logic  [31:0] InstrD_2_o,    //RS1,2 and RD
     output logic  [31:0] ImmExtD_2,   //
-    output logic  [31:0] PCPlus4D_2,
+    output logic  [31:0] PCPlus4D_2_o,
     output logic  [31:0] PCD_o,
     output logic  [2:0]  order_change_o,
     output logic         Order_Change_D_o,
-    output logic         Order_Change_F_o,
+    //output logic         Order_Change_F_o,
     
     output logic         both_mem_o
     
@@ -126,7 +128,8 @@ logic  memwritee, alusrce, regwritee;
 logic  [3:0] alucontrole;
 logic  [1:0] resultsrce;
 logic  [31:0] rd_1, rd_2, pcf1 ,pcplus4f1, pcf2, pcplus4f2, pcd,pce,immexte,pcplus4e,rd1e,rd2e;   
-logic  [31:0] InstrD_1,InstrD_2, ResultW,PCF,PCD, PCPlus4F , PCPlus4D, PCPlus4W,ImmExtE, ALUResultM;
+logic  [31:0] InstrD_1,InstrD_2, ResultW,PCF,PCD, PCD_2, PCPlus4F , PCPlus4D,PCPlus4D_2, PCPlus4W,ImmExtE, ALUResultM;
+logic  [31:0] PCPlus4D_new, PCPlus4D_2_new, PCD_new, PCD_2_new;
 logic  [11:7] RdD,RdE,RdM,RdW;
 logic  [19:15] rs1e;
 logic  [24:20] rs2e;
@@ -145,29 +148,23 @@ assign DataM = ALUResultM;
 
 
 //assign PCPlus4D_2 = PCPlus4D_i2;  
-assign InstrD_2_o = InstrD_2;
-//assign PCD_o = PCD;
+
+
+assign PCD_o = PCD_2_new;
 
 assign four =32'h8;
-assign a1_1 = InstrD_1[19:15];
-assign a2_1 = InstrD_1[24:20];
-
-assign a1_2 = InstrD_2[19:15];
-assign a1_2_test = InstrD_2[19:15];
-assign a2_2 = InstrD_2[24:20];
-
 
 //assign a3 = InstrD[11:7];
 assign InstrD_1 = rd_1; 
 assign InstrD_2 = rd_2;
 
 assign PCD = pcf1;
-assign PCD_o = pcf2;
+assign PCD_2 = pcf2;
 
 assign PCPlus4D_2 = pcplus4f2;
 assign PCPlus4D = pcplus4f1;
 
-
+assign PCPlus4D_2_o = PCPlus4D_2_new;
  
  
 logic [31:0] srcae, srcbe, writedatae, aluresultw;
@@ -181,8 +178,8 @@ logic [14:12] Funct3M;
 logic RegWriteW;
 
 
-logic order_change, both_mem;
-logic order_change_d, order_change_e, order_change_m, order_change_w;
+logic both_mem;
+logic order_change_e, order_change_m, order_change_w;
 logic Order_Change_D, Order_Change_E, Order_Change_M, Order_Change_W;
   
 Instruction_Memory #(
@@ -190,16 +187,19 @@ Instruction_Memory #(
 )
 d0 (.A(PCF) , .RD1(instr_1), .RD2(instr_2));  
 
-Dispatcher d6  ( .instr1(instr_1), .instr2(instr_2), .instr_o_1(instr_o_1), .instr_o_2(instr_o_2), 
-.order_change(order_change), .both_mem(both_mem), .clk(clk), .rstn_i(rstn_i));
+Dispatcher d6  ( .instr1(InstrD_1), .instr2(InstrD_2), .instr_o_1(instr_o_1), .instr_o_2(instr_o_2), 
+.order_change(Order_Change_D), .both_mem(both_mem), .clk(clk), .rstn_i(rstn_i),
+.PCPlus4D(PCPlus4D), .PCPlus4D_2(PCPlus4D_2), .PCD(PCD), .PCD_2(PCD_2), 
+.PCPlus4D_new(PCPlus4D_new),  .PCPlus4D_2_new(PCPlus4D_2_new), .PCD_new(PCD_new), .PCD_2_new(PCD_2_new),
+.lwstall_parallel(StallD_P), .PCSrcE(PCSrcE), .pcsrce_2(pcsrce_2) );
  
 Register_File d1(.A1(a1_1) , .A2(a2_1), .A3(RdW), .A1_2(a1_2), .A2_2(a2_2), .A3_2(RdW_2), .clk(clk),
  .WE3(RegWriteW), .WE3_2(RegWriteW_2), .WD3(ResultW), .WD3_2(ResultW_2),
  .RD1(RD1), .RD2(RD2), .RD1_2(RD1_2), .RD2_2(RD2_2), .reset(rstn_i), .order_change_w(Order_Change_W) ); 
  
-Extend d2 (.Instr(InstrD_1[31:7]), .Instr_2(InstrD_2[31:7]), .ImmSrc(ImmSrc), .ImmSrc_2(ImmSrc_2), .ImmExt(ImmExtD), .ImmExt_2(ImmExtD_2) ); 
+Extend d2 (.Instr(instr_o_1[31:7]), .Instr_2(instr_o_2[31:7]), .ImmSrc(ImmSrc), .ImmSrc_2(ImmSrc_2), .ImmExt(ImmExtD), .ImmExt_2(ImmExtD_2) ); 
      
-PC d3 (.PCNext(PCNext), .CLK(clk), .PC(PCF), .StallF(StallF | StallF_P | both_mem), .reset(rstn_i));
+PC d3 (.PCNext(PCNext), .CLK(clk), .PC(PCF), .StallF(StallF | StallF_P | (both_mem && !PCSrcE && !pcsrce_2)), .reset(rstn_i));
  
 ALU d4 (.A(SrcAE), .B(SrcBE), .F(ALUResult), .Zero(ZeroE),.op(ALUControlE));
  
@@ -225,32 +225,34 @@ always_ff @(posedge clk or negedge rstn_i) begin
         
         
         
-        order_change_d<=1'b0; 
+        //order_change_d<=1'b0; 
         
         pcplus4f2<=32'b0;     //reset for pipe
         pcf2<= 32'b0; 
                    
     end
     
-    else if(StallD) begin
+    
+    else if(StallD && StallD_2) begin  // Full D Stall
+    
     end
     
     
-    else if (FlushD) begin
+    else if ((FlushD && FlushD_2) ||(both_mem && !PCSrcE && !pcsrce_2)) begin  // full flush when both mem (when there is no jump)
         rd_1<=32'b0;
         rd_2<=32'b0;
         
         pcplus4f1<=32'b0;     
         pcf1 <= 32'b0; 
         
-        order_change_d<=1'b0;                     //pipe1
+        //order_change_d<=1'b0;                     //pipe1
         
         pcplus4f2<=32'b0;     //reset for pipe
         pcf2<= 32'b0; 
         
     end
     
-    else if (StallD_P && FlushD_P_2) begin
+    else if ((StallD_P && FlushD_P_2) || (StallD && FlushD_2) ) begin
         /*
         rd_2 <= instr_o_2;
         pcplus4f2 <= PCPlus4F;
@@ -264,7 +266,7 @@ always_ff @(posedge clk or negedge rstn_i) begin
     end
     
     
-    else if (StallD_P_2 && FlushD_P || both_mem) begin
+    else if ((StallD_P_2 && FlushD_P) || (StallD_2 && FlushD)) begin
         /*
         rd_1 <= instr_o_1;
         pcplus4f1 <= PCPlus4F;
@@ -282,10 +284,10 @@ always_ff @(posedge clk or negedge rstn_i) begin
     
    
     else begin
-        rd_1<=instr_o_1;
-        rd_2<=instr_o_2;
+        rd_1<=instr_1;
+        rd_2<=instr_2;
         
-        order_change_d <= order_change;
+        //order_change_d <= order_change;
         
         pcplus4f1<=PCPlus4F;
         pcf1 <= PCF;
@@ -308,7 +310,7 @@ logic [14:12] Funct3E;
 logic [31:0] instre;
 logic [31:0] InstrE;
 
-assign Order_Change_D = order_change_d;
+//assign Order_Change_D = order_change_d;
 
 assign InstrE = instre;
 
@@ -368,10 +370,10 @@ always_ff @(posedge clk or negedge rstn_i) begin
     end
     
     else begin
-        pce<= PCD;
-        rs1e<=InstrD_1[19:15];
-        rs2e<=InstrD_1[24:20];
-        rde<=InstrD_1[11:7];
+        pce<= PCD_new;
+        rs1e<=instr_o_1[19:15];
+        rs2e<=instr_o_1[24:20];
+        rde<= instr_o_1[11:7];
         immexte<=ImmExtD;                   //pipe2
         regwritee<=RegWrite;
         resultsrce<=ResultSrc;
@@ -380,12 +382,12 @@ always_ff @(posedge clk or negedge rstn_i) begin
         branche<= Branch;
         alucontrole<=ALUControl;
         alusrce<=ALUSrc;
-        pcplus4e<=PCPlus4D;
+        pcplus4e<=PCPlus4D_new;
         rd1e<=RD1;
         rd2e<=RD2;
         targetsrce <= TargetSrc;
-        funct3e<=InstrD_1[14:12];
-        instre <= InstrD_1;
+        funct3e<= instr_o_1[14:12];
+        instre <= instr_o_1;
         order_change_e <= Order_Change_D;
     end
     
@@ -538,6 +540,7 @@ end
 
   
 core_adder adder0 (.a_i(Target), .b_i(ImmExtE), .sum(PCTargetE));
+
 core_adder adder1 (.a_i(PCF), .b_i(four), .sum(PCPlus4F));        
   
   
@@ -574,10 +577,10 @@ always_comb begin
     1'b1: flag =~ZeroE;
     endcase
     */
-    Instr = InstrD_1;   //output for control unit
+    Instr = instr_o_1;   //output for control unit
     
-    rs1d = InstrD_1[19:15];
-    rs2d = InstrD_1[24:20];
+    rs1d = instr_o_1[19:15];
+    rs2d = instr_o_1[24:20];
     rs1_e = Rs1E;
     rs2_e = Rs2E;
     rd_e = RdE;
@@ -689,33 +692,42 @@ assign mem_wrt_o  = MemWriteW;    //1  bit
 assign regwrite_e = RegWriteE;
 
 
-assign pc_f  =   (PCF == 32'h0) ? 32'h0 : PCF;
+assign pc_f  =   (PCF == 32'h0) ? 32'h0 : PCF;     //first fetched
 
-assign PCF_2_o = (PCF == 32'h0) ? 32'h0 : PCF+4;
+assign PCF_2_o = (PCF == 32'h0) ? 32'h0 : PCF+4;   // second fetched
 
-assign pc_d  = (PCD ==32'h0)            ?  32'h0 :
-               (Order_Change_D == 1'b0) ?  PCD   : PCD +4;
+assign pc_d  = (PCD_new ==32'h0)            ?  32'h0 :              // Running instr PCD
+               (Order_Change_D == 1'b0) ?  PCD_new   : PCD_new +4;
 
-assign pc_e  = (PCE ==32'h0)            ?  32'h0 :
+assign pc_e  = (PCE ==32'h0)            ?  32'h0 :                  // Running instr PCE
                (Order_Change_E == 1'b0) ?  PCE   : PCE +4;
 
-assign pc_m  = (PCM ==32'h0)            ?  32'h0 :
+assign pc_m  = (PCM ==32'h0)            ?  32'h0 :                  // Running instr PCM
                (Order_Change_M == 1'b0) ?  PCM   : PCM +4;
 
-assign pc_wb = (PCW ==32'h0)            ?  32'h0 :
+assign pc_wb = (PCW ==32'h0)            ?  32'h0 :                  // Running instr PCW
                (Order_Change_W == 1'b0) ?  PCW   : PCW +4;
 
 //-----------------------------     
 
 
 assign order_change_o = {Order_Change_W, Order_Change_M, Order_Change_E};
-assign rdd = InstrD_1[11:7];
+assign rdd = instr_o_1[11:7];
 
-assign Order_Change_F_o = order_change;
+//assign Order_Change_F_o = order_change;
 assign Order_Change_D_o = Order_Change_D;
 
 assign both_mem_o = both_mem;
 
 
+assign a1_1 = instr_o_1[19:15];
+assign a2_1 = instr_o_1[24:20];
+
+assign a1_2 = instr_o_2[19:15];
+//assign a1_2_test = InstrD_2[19:15];
+assign a2_2 = instr_o_2[24:20];
+
+//assign InstrD_2_o = InstrD_2;
+assign InstrD_2_o = instr_o_2;
 
 endmodule

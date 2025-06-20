@@ -131,7 +131,7 @@ logic both_mem;
 
 logic [4:0] reg_addr_o1_2;
 
-logic Order_Change_F, Order_Change_D;
+logic Order_Change_D;
 
 
 
@@ -180,12 +180,8 @@ assign FlushD_P_o [1]  =  FlushD_P_2;
 assign FlushE_P_o [1]  =  FlushE_P_2;
  
  
-
-
-
 assign pc_o[0]         =  (!order_change_o[2]) ? pc_wb_1   : pc_wb_2;
 assign pc_o[1]         =  (!order_change_o[2]) ? pc_wb_2   : pc_wb_1  ;
-
 
 assign pc_f [0] = pc_f_1;
 assign pc_d [0] = pc_d_1;
@@ -335,6 +331,7 @@ Datapath_Common
     .reg_addr_o(reg_addr_o1),        //conditional output for tb
     
     .reg_data_o(reg_data_o1),
+    
     .mem_addr_o(mem_addr_o1),         //testbecnh outputs
     .mem_data_o(mem_data_o1),
     .mem_wrt_o(mem_wrt_o1),
@@ -356,7 +353,7 @@ Datapath_Common
     .RD2_2(RD2_2),     
     .InstrD_2_o(InstrD_2_o),
     .ImmExtD_2(ImmExtD_2),            // output to the second datapath
-    .PCPlus4D_2(PCPlus4D_2),
+    .PCPlus4D_2_o(PCPlus4D_2),
     .PCD_o(PCD_o),
     
     .order_change_o(order_change_o),
@@ -377,7 +374,7 @@ Datapath_Common
     
     .ImmSrc_2(ImmSrc1_2),
     
-    .Order_Change_F_o(Order_Change_F),
+    //.Order_Change_F_o(Order_Change_F),
     .Order_Change_D_o(Order_Change_D),
     
     .StallF_P(StallF_P), 
@@ -387,6 +384,9 @@ Datapath_Common
     .StallD_P_2(StallD_P_2), 
     .FlushD_P_2(FlushD_P_2),
     .FlushE_P(FlushE_P),
+    
+    .StallD_2(StallD1_2),
+    .FlushD_2(FlushD1_2),
     
     .both_mem_o(both_mem) 
     
@@ -488,7 +488,9 @@ unit_combined
     
     .order_change_e(order_change_o[0]),
     .order_change_m(order_change_o[1]),
-    .order_change_w(order_change_o[2])
+    .order_change_w(order_change_o[2]),
+    
+    .Order_Change_D(Order_Change_D)
 );
 
 
@@ -588,7 +590,7 @@ Datapath_2
     
     .order_change_i(order_change_o),
     
-    .Order_Change_F(Order_Change_F),
+    //.Order_Change_F(Order_Change_F),
     .Order_Change_D(Order_Change_D),
     
     .both_mem_i(both_mem)

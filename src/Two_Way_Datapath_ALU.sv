@@ -33,7 +33,7 @@ module Two_Way_Datapath_ALU
     input logic  [31:0] PCPlus4D_2,  
     input logic  [31:0] PCD, 
     
-    input logic Order_Change_F, Order_Change_D,
+    input logic Order_Change_D,
     
     input logic  [31:0] DataM, DataW,
     // DataE,
@@ -109,7 +109,7 @@ logic [3:0] ALUControlE;
 logic  jumpe, branche; 
 logic  flag;
 
-logic Order_Change_E, Order_Change_M, Order_Change_W;
+// logic Order_Change_E, Order_Change_M, Order_Change_W;
  
  
 logic [1:0] targetsrce;   
@@ -143,12 +143,15 @@ assign RdE = rde;
 assign TargetSrcE = targetsrce;
 assign Funct3E = funct3e;
 
+/*
 assign Order_Change_E = order_change_i[0];
 assign Order_Change_M = order_change_i[1];
 assign Order_Change_W = order_change_i[2];
-
+*/
 
 logic [31:0] ALUResult;
+logic order_change_e, order_change_m, order_change_w;
+logic Order_Change_E, Order_Change_M, Order_Change_W;
 
 //-----------------------------------------------   
 
@@ -184,6 +187,8 @@ always_ff @(posedge clk or negedge rstn_i) begin
         targetsrce<=2'b0;
         funct3e<=3'b0;
         instre<=32'b0;
+        
+        order_change_e<=0;
     end
     
     else begin
@@ -205,10 +210,13 @@ always_ff @(posedge clk or negedge rstn_i) begin
         targetsrce <= TargetSrc;
         funct3e<=InstrD_2_o[14:12];
         instre <= InstrD_2_o;
+        
+        order_change_e<=Order_Change_D;
     end
     
 end   
    
+assign Order_Change_E = order_change_e;   
 
 logic [31:0] srcae, srcbe, writedatae, aluresultw;
 logic [31:0] WriteDataE, SrcAE,SrcBE, ALUResultW;
@@ -275,6 +283,8 @@ always_ff @(posedge clk or negedge rstn_i) begin
         pctargetm <=   0;
         pcm <=         0;
         instrm <=      0;
+        
+        order_change_m <=0;
     end
     
 
@@ -290,10 +300,14 @@ always_ff @(posedge clk or negedge rstn_i) begin
         pctargetm <= PCTargetE;
         pcm <= PCE;
         instrm <= InstrE;
+        
+        order_change_m<=Order_Change_E;
     end    
 end
  
  //--------------------------------------------
+ 
+ assign Order_Change_M = order_change_m;
  
  logic regwritew;
  logic [1:0] resultsrcw;
@@ -359,12 +373,16 @@ end
         instrw <= InstrM;    
         writedataw <= WriteDataM;    // needed for tb
         memwritew <= MemWriteM;  
+        
+        order_change_w<=Order_Change_M;
     end
     
  end
  
  //-------------------------------------------------------------------------------
 
+  
+assign Order_Change_W = order_change_w;  
   
 core_adder adder0 (.a_i(Target), .b_i(ImmExtE), .sum(PCTargetE));
 //core_adder adder1 (.a_i(PCF), .b_i(four), .sum(PCPlus4F));     
@@ -505,7 +523,7 @@ assign regwrite_e = RegWriteE;
 
 
 //assign pc_f  = PCF ;
-assign pc_d  = (PCD == 32'h0)            ? 32'h0  : 
+assign pc_d  = (PCD == 32'h0)            ? 32'h0  :             
                (Order_Change_D == 1'b0)  ? PCD +4 : PCD ; 
 
 assign pc_e  = (PCE == 32'h0)            ? 32'h0  : 
@@ -516,9 +534,7 @@ assign pc_m  = (PCM == 32'h0)            ? 32'h0  :
                
 assign pc_wb = (PCW == 32'h0)            ? 32'h0  : 
                (Order_Change_W == 1'b0)  ? PCW +4 : PCW ; 
-
-
-
+               
 
 assign RdW_2 =  RdW;
 assign RegWriteW_2 = RegWriteW;
