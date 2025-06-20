@@ -77,15 +77,15 @@ module Hazard_Unit
     assign order_flag = {order_change_e, order_change_m, order_change_w};
 
     // --- Paralel (inter-pipeline) bağımlılıklar ----------------------
-    assign StallF_P   = (lwstall_parallel  | lwstall_parallel_2)  & (~pcsrce) & (~pcsrce_2);
-    assign StallD_P   =  lwstall_parallel                         & (~pcsrce) & (~pcsrce_2);
-    assign StallD_P_2 =                       lwstall_parallel_2  & (~pcsrce) & (~pcsrce_2);
+    assign StallF_P   = (lwstall_parallel  | lwstall_parallel_2) & (~pcsrce) & (~pcsrce_2);
+    assign StallD_P   =  lwstall_parallel                       & (~pcsrce) & (~pcsrce_2);
+    assign StallD_P_2 =                       lwstall_parallel_2 & (~pcsrce) & (~pcsrce_2);
 
-    assign FlushE_P   =  lwstall_parallel                         & (~pcsrce) & (~pcsrce_2);
-    assign FlushE_P_2 =                      lwstall_parallel_2   & (~pcsrce) & (~pcsrce_2);
+    assign FlushE_P   =  lwstall_parallel                      & (~pcsrce) & (~pcsrce_2);
+    assign FlushE_P_2 =                      lwstall_parallel_2 & (~pcsrce) & (~pcsrce_2);
 
-    assign FlushD_P   =                      lwstall_parallel_2   & (~pcsrce) & (~pcsrce_2);
-    assign FlushD_P_2 =  lwstall_parallel                         & (~pcsrce) & (~pcsrce_2);
+    assign FlushD_P   =                      lwstall_parallel_2 & (~pcsrce) & (~pcsrce_2);
+    assign FlushD_P_2 =  lwstall_parallel                      & (~pcsrce) & (~pcsrce_2);
 
     // --- Global stall/flush sinyalleri ------------------------------
     assign StallF   = lwstall_mem | lwstall_mem_2;
@@ -170,19 +170,19 @@ module Hazard_Unit
             lwstall_parallel = 1'b0;
             if (!order_change_e) begin
                 lwstall_mem = !( (rs1d == rde_2 && rs1d!=0) || (rs2d == rde_2 && rs2d!=0) || pcsrce || pcsrce_2 ) &&
-                              resultsrce0 && ((rs1d == rde) || (rs2d == rde)) && (~pcsrce) && (~pcsrce_2);
+                              resultsrce0 && ((rs1d == rde) || (rs2d == rde));
             end else begin
                 lwstall_mem = !(pcsrce || pcsrce_2) &&
-                              resultsrce0 && ((rs1d == rde) || (rs2d == rde)) && (~pcsrce) && (~pcsrce_2);
+                              resultsrce0 && ((rs1d == rde) || (rs2d == rde));
             end
         end else begin
             lwstall_parallel = ( (rs1d == rdd_2  && rs1d != 0) || (rs2d == rdd_2 && rs2d != 0) );
             if (!order_change_e) begin
                 lwstall_mem = !( (rs1d == rde_2 && rs1d!=0) || (rs2d == rde_2 && rs2d!=0) || lwstall_parallel || pcsrce || pcsrce_2 ) &&
-                              resultsrce0 && ((rs1d == rde) || (rs2d == rde)) && (~pcsrce) && (~pcsrce_2);
+                              resultsrce0 && ((rs1d == rde) || (rs2d == rde));
             end else begin
                 lwstall_mem = !(pcsrce || pcsrce_2) && !lwstall_parallel &&
-                              resultsrce0 && ((rs1d == rde) || (rs2d == rde) ) && (~pcsrce) && (~pcsrce_2);
+                              resultsrce0 && ((rs1d == rde) || (rs2d == rde));
             end
         end
     end // always_comb DP1_HAZARDS
@@ -253,19 +253,19 @@ module Hazard_Unit
             lwstall_parallel_2 = 1'b0;
             if (!order_change_e) begin
                 lwstall_mem_2 = !( (rs1d_2 == rde_2 && rs1d_2!=0) || (rs2d_2 == rde_2 && rs2d_2!=0) || pcsrce || pcsrce_2 ) &&
-                                resultsrce0 && ((rs1d_2 == rde) || (rs2d_2 == rde)) && (~pcsrce) && (~pcsrce_2);
+                                resultsrce0 && ((rs1d_2 == rde) || (rs2d_2 == rde));
             end else begin
                 lwstall_mem_2 = !(pcsrce || pcsrce_2) &&
-                                resultsrce0 && ((rs1d_2 == rde) || (rs2d_2 == rde)) && (~pcsrce) && (~pcsrce_2);
+                                resultsrce0 && ((rs1d_2 == rde) || (rs2d_2 == rde));
             end
         end else begin
-            lwstall_parallel_2 = ( (rs1d_2 == rdd  && rs1d_2 != 0) || (rs2d_2 == rdd && rs2d_2 != 0) ) && (~pcsrce) && (~pcsrce_2);
+            lwstall_parallel_2 = ( (rs1d_2 == rdd  && rs1d_2 != 0) || (rs2d_2 == rdd && rs2d_2 != 0) );
             if (!order_change_e) begin
                 lwstall_mem_2 = !( (rs1d_2 == rde_2 && rs1d_2 !=0) || (rs2d_2 == rde_2 && rs2d_2 !=0) || lwstall_parallel_2 || pcsrce || pcsrce_2 ) &&
-                                resultsrce0 && ((rs1d_2 == rde) || (rs2d_2 == rde)) && (~pcsrce) && (~pcsrce_2);
+                                resultsrce0 && ((rs1d_2 == rde) || (rs2d_2 == rde));
             end else begin
                 lwstall_mem_2 = !(pcsrce || pcsrce_2) && !lwstall_parallel_2 &&
-                                resultsrce0 && ((rs1d_2 == rde) || (rs2d_2 == rde)) && (~pcsrce) && (~pcsrce_2);
+                                resultsrce0 && ((rs1d_2 == rde) || (rs2d_2 == rde));
             end
         end
     end // always_comb DP2_HAZARDS
